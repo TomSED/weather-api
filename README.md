@@ -16,11 +16,10 @@ To run the API locally, AWS Sam needs to be installed.
 `https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-getting-started.html`
 
 ### Code & vendor
-
 Git clone this repository.
 `git clone git@github.com:TomSED/weather-api.git`
 
-Run `dep ensure` to pull dependencies
+Run `go mod vendor` to pull dependencies
 
 ### Deployment & Configuration
 #### Deploy to AWS

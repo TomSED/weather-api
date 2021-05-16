@@ -11,7 +11,7 @@ clean:
 	rm -rf ./dist
 
 deps:
-	dep ensure -v
+	go mod vendor
 
 build: clean deps $(WORKERS)
 
@@ -19,7 +19,7 @@ $(WORKERS): vendor
 	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o $@ $(addprefix ./workers/,$(notdir $@))
 
 test:
-	go test $(shell go list ./...) -coverprofile c.out
+	go test $(shell go list ./... | grep -v ) -coverprofile c.out
 
 local: clean build
 	$(VARS) sam local start-api -p 8080
