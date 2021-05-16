@@ -70,3 +70,5 @@ $ make local
 - Due to the simplicity of data, this can be done in nosql (i.e. dynamodb) for performance and cost. However, setup overhead is more complex so I just used simple postgres queries
 - Similar to above, can use database ORM if database need to be expanded, but no need to over-engineer as of now
 - Weatherstack & openweathermap can be more detailed. I didn't spend much time testing out what error codes & responses I can be receiving so the response handler is very generic.
+- Didn't spend too much time on implementing gitflow (i.e. develop/release etc branches) or repository configuration
+- Didn't spend much time on CI/CD or AWS configurations if you wanted to deploy a live version. But should be easy enough to add if needed
