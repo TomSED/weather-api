@@ -5,18 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"net/http"
 
 	"github.com/TomSED/weather-api/pkg/openweathermap"
 	"github.com/TomSED/weather-api/pkg/weatherstack"
 	"github.com/aws/aws-lambda-go/events"
 )
 
+// WeatherService provides the lambda handlers for the weather api
 type WeatherService struct {
 	weatherStackClient   WeatherStackClient
 	openWeatherMapClient OpenWeatherMapClient
 }
 
+// NewWeatherService creates a new WeatherService
 func NewWeatherService(weatherStackClient WeatherStackClient, openWeatherMapClient OpenWeatherMapClient) *WeatherService {
 	return &WeatherService{
 		weatherStackClient:   weatherStackClient,
@@ -24,11 +25,14 @@ func NewWeatherService(weatherStackClient WeatherStackClient, openWeatherMapClie
 	}
 }
 
+// GetWeatherResponse is the struct for the GetWeather api response
 type GetWeatherResponse struct {
 	WindSpeed   int `json:"wind_speed"`
 	Temperature int `json:"temperature_degrees"`
 }
 
+// GetWeather is the endpoint for retrieving current temperature and windspeed of a city (via query params city=sydney)
+// Weather sources uses weather stack with a failover of open weathermap
 func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 
 	// For debugging
@@ -37,11 +41,8 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 
 	city, exist := e.QueryStringParameters["city"]
 	if !exist || city == "" {
-		fmt.Println("Missing city in query parameter")
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusBadRequest,
-			Body:       "Missing city in query parameter",
-		}, nil
+		fmt.Printf(`Missing e.QueryStringParameters["city"]: %v\n`, city)
+		return badRequest("Missing city in query parameter"), nil
 	}
 
 	var weather *GetWeatherResponse
@@ -52,10 +53,7 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 		openWeatherMapResp, err := ws.openWeatherMapClient.GetWeather(city)
 		if err != nil {
 			fmt.Printf("ws.openWeatherMapClient.GetWeather error: %v\n", err)
-			return events.APIGatewayProxyResponse{
-				StatusCode: http.StatusInternalServerError,
-				Body:       "Something has gone wrong",
-			}, nil
+			return internalServerError(), nil
 		}
 		weather = mapOpenWeatherMapResponse(openWeatherMapResp)
 
@@ -66,19 +64,14 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 	byt, err := json.Marshal(weather)
 	if err != nil {
 		fmt.Printf("json.Marshal error: %v\n", err)
-		return events.APIGatewayProxyResponse{
-			StatusCode: http.StatusInternalServerError,
-			Body:       "Something has gone wrong",
-		}, nil
+		return internalServerError(), nil
 	}
 	apiResponseBody := string(byt)
 
-	return events.APIGatewayProxyResponse{
-		StatusCode: http.StatusOK,
-		Body:       apiResponseBody,
-	}, nil
+	return success(apiResponseBody), nil
 }
 
+// mapWeatherStackResponse extracts windspeed & temperature from weatherstack.APIResponse
 func mapWeatherStackResponse(resp *weatherstack.APIResponse) *GetWeatherResponse {
 	return &GetWeatherResponse{
 		WindSpeed:   resp.Current.WindSpeed,
@@ -86,6 +79,7 @@ func mapWeatherStackResponse(resp *weatherstack.APIResponse) *GetWeatherResponse
 	}
 }
 
+// mapOpenWeatherMapResponse extracts windspeed & temperature from openweathermap.APIResponse
 func mapOpenWeatherMapResponse(resp *openweathermap.APIResponse) *GetWeatherResponse {
 
 	temp := int(math.Round(resp.Main.Temp))
