@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/aws/aws-lambda-go v1.21.0
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/lib/pq v1.10.1
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0

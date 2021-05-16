@@ -4,25 +4,33 @@ import (
 	"context"
 	"encoding/json"
 	"math"
+	"time"
 
 	"github.com/TomSED/weather-api/pkg/openweathermap"
+	"github.com/TomSED/weather-api/pkg/postgres"
 	"github.com/TomSED/weather-api/pkg/weatherstack"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	CACHE_SECONDS = 3
 )
 
 // WeatherService provides the lambda handlers for the weather api
 type WeatherService struct {
 	weatherStackClient   WeatherStackClient
 	openWeatherMapClient OpenWeatherMapClient
+	postgresClient       PostgresClient
 	logger               *logrus.Logger
 }
 
 // NewWeatherService creates a new WeatherService
-func NewWeatherService(weatherStackClient WeatherStackClient, openWeatherMapClient OpenWeatherMapClient) *WeatherService {
+func NewWeatherService(weatherStackClient WeatherStackClient, openWeatherMapClient OpenWeatherMapClient, postgresClient PostgresClient) *WeatherService {
 	return &WeatherService{
 		weatherStackClient:   weatherStackClient,
 		openWeatherMapClient: openWeatherMapClient,
+		postgresClient:       postgresClient,
 	}
 }
 
@@ -49,27 +57,45 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 		return badRequest("Missing city in query parameter"), nil
 	}
 
-	var weather *GetWeatherResponse
-	// Try weatherstack
-	weatherStackResp, err := ws.weatherStackClient.GetWeather(city)
-	if err != nil {
-		if ws.logger != nil {
-			ws.logger.Errorf("ws.weatherStackClient.GetWeather error: %v\n", err)
-		}
-
-		// Try openweathermap
-		openWeatherMapResp, err := ws.openWeatherMapClient.GetWeather(city)
+	// Try querying DB
+	weatherData, err := ws.postgresClient.GetLatestWeatherData()
+	if err != nil && ws.logger != nil {
+		ws.logger.Errorf("ws.postgresClient.GetLatestWeatherData error: %v\n", err)
+	}
+	// Check if weather data is up to date
+	if err != nil || needsToBeUpdated(weatherData) {
+		// Try weatherstack
+		weatherStackResp, err := ws.weatherStackClient.GetWeather(city)
 		if err != nil {
 			if ws.logger != nil {
-				ws.logger.Errorf("ws.openWeatherMapClient.GetWeather error: %v\n", err)
+				ws.logger.Errorf("ws.weatherStackClient.GetWeather error: %v\n", err)
 			}
-			return internalServerError(), nil
-		}
-		weather = mapOpenWeatherMapResponse(openWeatherMapResp)
 
-	} else {
-		weather = mapWeatherStackResponse(weatherStackResp)
+			// Try openweathermap
+			openWeatherMapResp, err := ws.openWeatherMapClient.GetWeather(city)
+			if err != nil {
+				if ws.logger != nil {
+					ws.logger.Errorf("ws.openWeatherMapClient.GetWeather error: %v\n", err)
+				}
+				return internalServerError(), nil
+			}
+			weatherData = mapOpenWeatherMapResponse(openWeatherMapResp)
+
+		} else {
+			weatherData = mapWeatherStackResponse(weatherStackResp)
+		}
+
+		// Update db
+		err = ws.postgresClient.InsertWeatherData(weatherData)
+		if err != nil && ws.logger != nil {
+			ws.logger.Errorf("ws.openWeatherMapClient.GetWeather error: %v\n", err)
+			// Non-blocking error, do not need to return a http error, just log error
+		}
 	}
+
+	// Prepare http response
+	var weather *GetWeatherResponse
+	weather = mapWeatherData(weatherData)
 
 	// Marshal resp
 	byt, err := json.Marshal(weather)
@@ -84,22 +110,48 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 	return success(apiResponseBody), nil
 }
 
+func needsToBeUpdated(weatherData *postgres.WeatherData) bool {
+	if weatherData == nil {
+		return true
+	}
+
+	now := time.Now().UTC()
+	duration := now.Sub(weatherData.UpdatedDate.UTC())
+	if duration > CACHE_SECONDS*time.Second {
+		return true
+	}
+
+	return false
+}
+
 // mapWeatherStackResponse extracts windspeed & temperature from weatherstack.APIResponse
-func mapWeatherStackResponse(resp *weatherstack.APIResponse) *GetWeatherResponse {
+func mapWeatherData(data *postgres.WeatherData) *GetWeatherResponse {
 	return &GetWeatherResponse{
+		WindSpeed:   data.WindSpeed,
+		Temperature: data.Temperature,
+	}
+}
+
+// mapWeatherStackResponse extracts windspeed & temperature from weatherstack.APIResponse
+func mapWeatherStackResponse(resp *weatherstack.APIResponse) *postgres.WeatherData {
+	return &postgres.WeatherData{
+		DataSource:  "weatherstack",
 		WindSpeed:   resp.Current.WindSpeed,
 		Temperature: resp.Current.Temperature,
+		UpdatedDate: time.Now().UTC(),
 	}
 }
 
 // mapOpenWeatherMapResponse extracts windspeed & temperature from openweathermap.APIResponse
-func mapOpenWeatherMapResponse(resp *openweathermap.APIResponse) *GetWeatherResponse {
+func mapOpenWeatherMapResponse(resp *openweathermap.APIResponse) *postgres.WeatherData {
 
 	temp := int(math.Round(resp.Main.Temp))
 	windSpeed := int(math.Round(resp.Wind.Speed))
 
-	return &GetWeatherResponse{
+	return &postgres.WeatherData{
+		DataSource:  "openweathermap",
 		WindSpeed:   temp,
 		Temperature: windSpeed,
+		UpdatedDate: time.Now(),
 	}
 }

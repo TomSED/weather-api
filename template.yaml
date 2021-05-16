@@ -11,6 +11,18 @@ Parameters:
   OpenWeatherMapApiKey:
     Type: String
     NoEcho: true
+  PgHost:
+    Type: String
+  PgPort:
+    Type: String
+  PgUsername:
+    Type: String
+    NoEcho: true
+  PgPassword:
+    Type: String
+    NoEcho: true
+  PgDbName:
+    Type: String
 
 Globals:
   Function:
@@ -40,6 +52,11 @@ Resources:
         Variables:
           WEATHERSTACK_API_KEY: !Ref WeatherStackApiKey
           OPENWEATHERMAP_API_KEY: !Ref OpenWeatherMapApiKey
+          PG_HOST: !Ref PgHost
+          PG_PORT: !Ref PgPort
+          PG_USERNAME: !Ref PgUsername
+          PG_PASSWORD: !Ref PgPassword
+          PG_DB_NAME: !Ref PgDbName
     Type: AWS::Serverless::Function
 
 Outputs:
