@@ -1,0 +1,40 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Stage:
+    Type: String
+
+Globals:
+  Function:
+    CodeUri: dist/
+    Runtime: go1.x
+    Timeout: 30
+    Tracing: Active
+    Environment:
+      Variables:
+        STAGE: !Ref Stage
+
+Resources:
+  GetWeatherFunction:
+    Properties:
+      CodeUri: dist/
+      FunctionName: !Sub ${AWS::StackName}-GetWeather
+      Handler: weather
+      Runtime: go1.x
+      Events:
+        Request:
+          Properties:
+            Method: GET
+            Path: /weather
+          Type: Api
+      Timeout: 30
+      Environment:
+        Variables:
+          STAGE: !Ref Stage
+    Type: AWS::Serverless::Function
+
+Outputs:
+  APIEndpoint:
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ServerlessRestApiProdStage}"
