@@ -1,10 +1,11 @@
-package weatherstack
+package weatherstack_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/TomSED/weather-api/pkg/weatherstack"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,10 +20,7 @@ func TestGetWeather(t *testing.T) {
 			w.Write([]byte(cannedResponse))
 		}))
 
-		client := &Client{
-			baseURL: testAPI.URL,
-			apiKey:  "dummykey",
-		}
+		client := weatherstack.NewClient(testAPI.URL, "dummykey")
 
 		resp, err := client.GetWeather("Sydney")
 		if !assert.Nil(t, err) {
@@ -41,10 +39,7 @@ func TestGetWeather(t *testing.T) {
 			testRequest = req
 		}))
 
-		client := &Client{
-			baseURL: testAPI.URL,
-			apiKey:  "dummykey",
-		}
+		client := weatherstack.NewClient(testAPI.URL, "dummykey")
 
 		_, _ = client.GetWeather("Sydney")
 		if !assert.NotNil(t, testRequest) {
