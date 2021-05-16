@@ -55,7 +55,7 @@ func (c *Client) GetWeather(city string) (*APIResponse, error) {
 	queryParams := url.Values{}
 	queryParams.Add("appid", c.apiKey)
 	queryParams.Add("q", city)
-	url := fmt.Sprintf("%v/current?%v", c.baseURL, queryParams.Encode())
+	url := fmt.Sprintf("%v/data/2.5/weather?%v", c.baseURL, queryParams.Encode())
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {

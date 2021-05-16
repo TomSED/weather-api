@@ -1,5 +1,14 @@
 package weatherapi
 
-type WeatherStackClient interface{}
+import (
+	"github.com/TomSED/weather-api/pkg/openweathermap"
+	"github.com/TomSED/weather-api/pkg/weatherstack"
+)
 
-type OpenWeatherMapClient interface{}
+type WeatherStackClient interface {
+	GetWeather(city string) (*weatherstack.APIResponse, error)
+}
+
+type OpenWeatherMapClient interface {
+	GetWeather(city string) (*openweathermap.APIResponse, error)
+}

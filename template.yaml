@@ -5,6 +5,12 @@ Transform: AWS::Serverless-2016-10-31
 Parameters:
   Stage:
     Type: String
+  WeatherStackApiKey:
+    Type: String
+    NoEcho: true
+  OpenWeatherMapApiKey:
+    Type: String
+    NoEcho: true
 
 Globals:
   Function:
@@ -27,12 +33,13 @@ Resources:
         Request:
           Properties:
             Method: GET
-            Path: /weather
+            Path: /v1/weather
           Type: Api
       Timeout: 30
       Environment:
         Variables:
-          STAGE: !Ref Stage
+          WEATHERSTACK_API_KEY: !Ref WeatherStackApiKey
+          OPENWEATHERMAP_API_KEY: !Ref OpenWeatherMapApiKey
     Type: AWS::Serverless::Function
 
 Outputs:

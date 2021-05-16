@@ -3,7 +3,7 @@ STACK_NAME := $(STAGE)-WEATHERAPI
 TEMPLATE := template.yaml
 PACKAGED_TEMPLATE := dist/$(STACK_NAME)-template.yaml
 WORKERS := $(addprefix dist/,$(notdir $(wildcard workers/*)))
-VARS := Stage=$(STAGE)
+VARS := Stage=$(STAGE) WeatherStackApiKey=$(WEATHERSTACK_API_KEY) OpenWeatherMapApiKey=$(OPENWEATHERMAP_API_KEY)
 
 .PHONY: clean deps
 
@@ -22,10 +22,10 @@ test:
 	go test $(shell go list ./...) -coverprofile c.out
 
 local: clean build
-	$(VARS) sam local start-api -p 5000
+	$(VARS) sam local start-api -p 8080
 
 local-faster: clean build
-	$(VARS) sam local start-api --skip-pull-image -p 5000
+	$(VARS) sam local start-api --skip-pull-image -p 8080
 
 $(PACKAGED_TEMPLATE): build
 	aws cloudformation package --template-file $(TEMPLATE) --s3-bucket $(S3_BUCKET) --output-template-file $(PACKAGED_TEMPLATE)

@@ -10,6 +10,11 @@ type Client struct {
 }
 
 func NewClient(baseURL string, apiKey string) *Client {
+
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
+
 	return &Client{
 		baseURL: baseURL,
 		apiKey:  apiKey,
