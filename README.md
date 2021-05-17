@@ -72,3 +72,5 @@ $ make local
 - Weatherstack & openweathermap can be more detailed. I didn't spend much time testing out what error codes & responses I can be receiving so the response handler is very generic.
 - Didn't spend too much time on implementing gitflow (i.e. develop/release etc branches) or repository configuration
 - Didn't spend much time on CI/CD or AWS configurations if you wanted to deploy a live version. But should be easy enough to add if needed
+- Can add swagger if api needs to be expanded. Go-swagger allows generating request & response structs (and also validation functions) based on swagger.yaml file.
+- Forgot to add city field to DB in v1 and v1.1
