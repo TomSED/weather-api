@@ -46,9 +46,9 @@ func (c *Client) InsertWeatherData(weatherData *WeatherData) error {
 // GetLatestWeatherData returns latest weather data sorted by updated date
 func (c *Client) GetLatestWeatherData(city string) (*WeatherData, error) {
 	query := `SELECT datasource,
+				city,
 				temperature,
 				windspeed,
-				city,
 				updateddate
 			FROM public.weather
 			WHERE city = $1
@@ -58,10 +58,11 @@ func (c *Client) GetLatestWeatherData(city string) (*WeatherData, error) {
 	row := c.database.QueryRow(query, city)
 
 	dataSource := ""
+	city = ""
 	temp := 0
 	windSpeed := 0
 	updatedDate := time.Time{}
-	err := row.Scan(&dataSource, &temp, &windSpeed, &updatedDate)
+	err := row.Scan(&dataSource, &city, &temp, &windSpeed, &updatedDate)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
@@ -71,6 +72,7 @@ func (c *Client) GetLatestWeatherData(city string) (*WeatherData, error) {
 
 	out := &WeatherData{
 		DataSource:  dataSource,
+		City:        city,
 		Temperature: temp,
 		WindSpeed:   windSpeed,
 		UpdatedDate: updatedDate,

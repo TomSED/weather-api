@@ -117,6 +117,7 @@ func needsToBeUpdated(weatherData *postgres.WeatherData) bool {
 
 	now := time.Now().UTC()
 	duration := now.Sub(weatherData.UpdatedDate.UTC())
+
 	if duration > CACHE_SECONDS*time.Second {
 		return true
 	}
