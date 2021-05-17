@@ -79,10 +79,10 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 				}
 				return internalServerError(), nil
 			}
-			weatherData = mapOpenWeatherMapResponse(openWeatherMapResp)
+			weatherData = mapOpenWeatherMapResponse(city, openWeatherMapResp)
 
 		} else {
-			weatherData = mapWeatherStackResponse(weatherStackResp)
+			weatherData = mapWeatherStackResponse(city, weatherStackResp)
 		}
 
 		// Update db
@@ -133,9 +133,10 @@ func mapWeatherData(data *postgres.WeatherData) *GetWeatherResponse {
 }
 
 // mapWeatherStackResponse extracts windspeed & temperature from weatherstack.APIResponse
-func mapWeatherStackResponse(resp *weatherstack.APIResponse) *postgres.WeatherData {
+func mapWeatherStackResponse(city string, resp *weatherstack.APIResponse) *postgres.WeatherData {
 	return &postgres.WeatherData{
 		DataSource:  "weatherstack",
+		City:        city,
 		WindSpeed:   resp.Current.WindSpeed,
 		Temperature: resp.Current.Temperature,
 		UpdatedDate: time.Now().UTC(),
@@ -143,13 +144,14 @@ func mapWeatherStackResponse(resp *weatherstack.APIResponse) *postgres.WeatherDa
 }
 
 // mapOpenWeatherMapResponse extracts windspeed & temperature from openweathermap.APIResponse
-func mapOpenWeatherMapResponse(resp *openweathermap.APIResponse) *postgres.WeatherData {
+func mapOpenWeatherMapResponse(city string, resp *openweathermap.APIResponse) *postgres.WeatherData {
 
 	temp := int(math.Round(resp.Main.Temp))
 	windSpeed := int(math.Round(resp.Wind.Speed))
 
 	return &postgres.WeatherData{
 		DataSource:  "openweathermap",
+		City:        city,
 		WindSpeed:   temp,
 		Temperature: windSpeed,
 		UpdatedDate: time.Now(),

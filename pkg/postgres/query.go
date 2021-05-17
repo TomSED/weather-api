@@ -25,6 +25,7 @@ func (c *Client) InitTables() error {
 
 type WeatherData struct {
 	DataSource  string
+	City        string
 	Temperature int
 	WindSpeed   int
 	UpdatedDate time.Time
@@ -32,9 +33,9 @@ type WeatherData struct {
 
 // InsertWeatherData inserts weather data into database row
 func (c *Client) InsertWeatherData(weatherData *WeatherData) error {
-	query := `INSERT INTO public.weather VALUES ($1, $2, $3, $4);`
+	query := `INSERT INTO public.weather VALUES ($1, $2, $3, $4, $5);`
 
-	_, err := c.database.Exec(query, weatherData.DataSource, weatherData.Temperature, weatherData.WindSpeed, weatherData.UpdatedDate)
+	_, err := c.database.Exec(query, weatherData.DataSource, weatherData.City, weatherData.Temperature, weatherData.WindSpeed, weatherData.UpdatedDate)
 	if err != nil {
 		return err
 	}
