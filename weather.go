@@ -58,7 +58,7 @@ func (ws *WeatherService) GetWeather(ctx context.Context, e events.APIGatewayPro
 	}
 
 	// Try querying DB
-	weatherData, err := ws.postgresClient.GetLatestWeatherData()
+	weatherData, err := ws.postgresClient.GetLatestWeatherData(city)
 	if err != nil && ws.logger != nil {
 		ws.logger.Errorf("ws.postgresClient.GetLatestWeatherData error: %v\n", err)
 	}

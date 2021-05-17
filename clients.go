@@ -25,5 +25,5 @@ type OpenWeatherMapClient interface {
 // PostgresClient is an interface for the weather database client
 type PostgresClient interface {
 	InsertWeatherData(*postgres.WeatherData) error
-	GetLatestWeatherData() (*postgres.WeatherData, error)
+	GetLatestWeatherData(city string) (*postgres.WeatherData, error)
 }

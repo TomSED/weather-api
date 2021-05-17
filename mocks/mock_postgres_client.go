@@ -24,7 +24,7 @@ var _ weatherapi.PostgresClient = &PostgresClientMock{}
 //
 //         // make and configure a mocked weatherapi.PostgresClient
 //         mockedPostgresClient := &PostgresClientMock{
-//             GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+//             GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 // 	               panic("mock out the GetLatestWeatherData method")
 //             },
 //             InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
@@ -38,7 +38,7 @@ var _ weatherapi.PostgresClient = &PostgresClientMock{}
 //     }
 type PostgresClientMock struct {
 	// GetLatestWeatherDataFunc mocks the GetLatestWeatherData method.
-	GetLatestWeatherDataFunc func() (*postgres.WeatherData, error)
+	GetLatestWeatherDataFunc func(city string) (*postgres.WeatherData, error)
 
 	// InsertWeatherDataFunc mocks the InsertWeatherData method.
 	InsertWeatherDataFunc func(in1 *postgres.WeatherData) error
@@ -47,6 +47,8 @@ type PostgresClientMock struct {
 	calls struct {
 		// GetLatestWeatherData holds details about calls to the GetLatestWeatherData method.
 		GetLatestWeatherData []struct {
+			// City is the city argument value.
+			City string
 		}
 		// InsertWeatherData holds details about calls to the InsertWeatherData method.
 		InsertWeatherData []struct {
@@ -57,24 +59,29 @@ type PostgresClientMock struct {
 }
 
 // GetLatestWeatherData calls GetLatestWeatherDataFunc.
-func (mock *PostgresClientMock) GetLatestWeatherData() (*postgres.WeatherData, error) {
+func (mock *PostgresClientMock) GetLatestWeatherData(city string) (*postgres.WeatherData, error) {
 	if mock.GetLatestWeatherDataFunc == nil {
 		panic("PostgresClientMock.GetLatestWeatherDataFunc: method is nil but PostgresClient.GetLatestWeatherData was just called")
 	}
 	callInfo := struct {
-	}{}
+		City string
+	}{
+		City: city,
+	}
 	lockPostgresClientMockGetLatestWeatherData.Lock()
 	mock.calls.GetLatestWeatherData = append(mock.calls.GetLatestWeatherData, callInfo)
 	lockPostgresClientMockGetLatestWeatherData.Unlock()
-	return mock.GetLatestWeatherDataFunc()
+	return mock.GetLatestWeatherDataFunc(city)
 }
 
 // GetLatestWeatherDataCalls gets all the calls that were made to GetLatestWeatherData.
 // Check the length with:
 //     len(mockedPostgresClient.GetLatestWeatherDataCalls())
 func (mock *PostgresClientMock) GetLatestWeatherDataCalls() []struct {
+	City string
 } {
 	var calls []struct {
+		City string
 	}
 	lockPostgresClientMockGetLatestWeatherData.RLock()
 	calls = mock.calls.GetLatestWeatherData

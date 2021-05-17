@@ -9,6 +9,7 @@ func (c *Client) InitTables() error {
 
 	script := `CREATE TABLE IF NOT EXISTS public.weather (
 		datasource varchar NOT NULL,
+		city varchar NOT NULL,
 		temperature integer NOT NULL,
 		windspeed integer NOT NULL,
 		updateddate timestamp NOT NULL
@@ -42,16 +43,18 @@ func (c *Client) InsertWeatherData(weatherData *WeatherData) error {
 }
 
 // GetLatestWeatherData returns latest weather data sorted by updated date
-func (c *Client) GetLatestWeatherData() (*WeatherData, error) {
+func (c *Client) GetLatestWeatherData(city string) (*WeatherData, error) {
 	query := `SELECT datasource,
 				temperature,
 				windspeed,
+				city,
 				updateddate
 			FROM public.weather
+			WHERE city = $1
 			ORDER BY updateddate desc
 			LIMIT 1;`
 
-	row := c.database.QueryRow(query)
+	row := c.database.QueryRow(query, city)
 
 	dataSource := ""
 	temp := 0

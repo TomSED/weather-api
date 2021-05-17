@@ -19,7 +19,7 @@ func TestGetWeatherWithDB(t *testing.T) {
 	t.Run("If DB success and data is up to date, it should return data from DB", func(t *testing.T) {
 
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return &postgres.WeatherData{
 					DataSource:  "datasource",
 					Temperature: 1,
@@ -65,7 +65,7 @@ func TestGetWeatherWithDB(t *testing.T) {
 	t.Run("If DB success but data is out of date, it should use weatherstack", func(t *testing.T) {
 
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return &postgres.WeatherData{
 					DataSource:  "datasource",
 					Temperature: 1,
@@ -112,7 +112,7 @@ func TestGetWeatherWithDB(t *testing.T) {
 	t.Run("If DB returns no data, it should use weatherstack", func(t *testing.T) {
 
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return nil, nil
 			},
 			InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
@@ -156,7 +156,7 @@ func TestGetWeatherWithAPI(t *testing.T) {
 
 	t.Run("If weatherstack succeeds, it should use weather stack", func(t *testing.T) {
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return nil, errors.New("db error")
 			},
 			InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
@@ -196,7 +196,7 @@ func TestGetWeatherWithAPI(t *testing.T) {
 
 	t.Run("If weatherstack fails, it should use openweather map", func(t *testing.T) {
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return nil, errors.New("db error")
 			},
 			InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
@@ -237,7 +237,7 @@ func TestGetWeatherWithAPI(t *testing.T) {
 
 	t.Run("If both data sources fail, it should return a 500 response", func(t *testing.T) {
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return nil, errors.New("db error")
 			},
 			InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
@@ -274,7 +274,7 @@ func TestGetWeatherWithAPI(t *testing.T) {
 
 	t.Run("If no city in query provided, it should return a 400 error", func(t *testing.T) {
 		mockPostgresClient := &mocks.PostgresClientMock{
-			GetLatestWeatherDataFunc: func() (*postgres.WeatherData, error) {
+			GetLatestWeatherDataFunc: func(city string) (*postgres.WeatherData, error) {
 				return nil, errors.New("db error")
 			},
 			InsertWeatherDataFunc: func(in1 *postgres.WeatherData) error {
