@@ -14,6 +14,7 @@ import (
 func main() {
 
 	logger := logrus.New()
+	logger.Out = os.Stdout
 
 	weatherStackClient := weatherstack.NewClient("", os.Getenv("WEATHERSTACK_API_KEY"))
 	openWeatherMapClient := openweathermap.NewClient("", os.Getenv("OPENWEATHERMAP_API_KEY"))
