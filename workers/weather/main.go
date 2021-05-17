@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	weatherapi "github.com/TomSED/weather-api"
@@ -19,7 +18,6 @@ func main() {
 	weatherStackClient := weatherstack.NewClient("", os.Getenv("WEATHERSTACK_API_KEY"))
 	openWeatherMapClient := openweathermap.NewClient("", os.Getenv("OPENWEATHERMAP_API_KEY"))
 
-	fmt.Printf("%v\n%v\n%v\n%v\n%v\n", os.Getenv("PG_HOST"), os.Getenv("PG_PORT"), os.Getenv("PG_USERNAME"), os.Getenv("PG_PASSWORD"), os.Getenv("PG_DB_NAME"))
 	postgresClient, err := postgres.NewClient(os.Getenv("PG_HOST"), os.Getenv("PG_PORT"), os.Getenv("PG_USERNAME"), os.Getenv("PG_PASSWORD"), os.Getenv("PG_DB_NAME"))
 	if err != nil {
 		logger.Errorf("postgres.NewClient error: %v", err)
