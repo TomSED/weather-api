@@ -28,6 +28,13 @@ local: clean build
 local-faster: clean build
 	$(VARS) sam local start-api --skip-pull-image -p 8080 --docker-network host
 
+# local: clean cdk-synth
+# 	sam local start-api -p 8080 --docker-network host -t ./deployment/cdk/cdk.out/ApigatewayCdkStack.template.json
+
+# local-faster: clean cdk-synth
+# 	sam local start-api --skip-pull-image -p 8080 --docker-network host -t ./deployment/cdk/cdk.out/ApigatewayCdkStack.template.json
+
+
 $(PACKAGED_TEMPLATE): build
 	aws cloudformation package --template-file $(TEMPLATE) --s3-bucket $(S3_BUCKET) --output-template-file $(PACKAGED_TEMPLATE)
 
@@ -35,7 +42,8 @@ deploy: $(PACKAGED_TEMPLATE)
 	aws cloudformation deploy --stack-name $(STACK_NAME) \
 	--template-file $(PACKAGED_TEMPLATE) \
 	--capabilities CAPABILITY_IAM \
-	--parameter-override $(VARS)
+	--parameter-override Stage=$(STAGE) WeatherStackApiKey=$(WEATHERSTACK_API_KEY) OpenWeatherMapApiKey=$(OPENWEATHERMAP_API_KEY) \
+	PgHost=$(PG_HOST) PgPort=$(PG_PORT) PgUsername=$(PG_USERNAME) PgPassword=$(from some file) PgDbName=$(PG_DB_NAME)
 	aws cloudformation describe-stacks \
     --stack-name $(STACK_NAME) \
     --query 'Stacks[].Outputs'
